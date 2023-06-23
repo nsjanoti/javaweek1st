@@ -1,0 +1,180 @@
+package google;
+import java.util.*;
+
+// Class representing a user account
+class User {
+    private String name;
+    private String accountNumber;
+    private double balance;
+    private List<String> transactionHistory;
+
+    public User(String name, String accountNumber, double balance) {
+        this.name = name;
+        this.accountNumber = accountNumber;
+        this.balance = balance;
+        this.transactionHistory = new ArrayList<>();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public List<String> getTransactionHistory() {
+        return transactionHistory;
+    }
+
+    public void deposit(double amount) {
+        balance += amount;
+        String transaction = "Deposit: +" + amount + " | Balance: " + balance;
+        transactionHistory.add(transaction);
+    }
+
+    public void withdraw(double amount) {
+        if (amount > balance) {
+            System.out.println("Insufficient funds");
+        } else {
+            balance -= amount;
+            String transaction = "Withdrawal: -" + amount + " | Balance: " + balance;
+            transactionHistory.add(transaction);
+        }
+    }
+
+    public void transfer(User receiver, double amount) {
+        if (amount > balance) {
+            System.out.println("Insufficient funds");
+        } else {
+            balance -= amount;
+            receiver.deposit(amount);
+            String transaction = "Fund Transfer: -" + amount + " | Balance: " + balance;
+            transactionHistory.add(transaction);
+        }
+    }
+}
+
+// Class representing the banking system
+class BankingSystem {
+    private Map<String, User> users;
+    private Scanner scanner;
+
+    public BankingSystem() {
+        this.users = new HashMap<>();
+        this.scanner = new Scanner(System.in);
+    }
+
+    public void registerUser() {
+        System.out.println("User Registration");
+        System.out.print("Enter name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter account number: ");
+        String accountNumber = scanner.nextLine();
+        System.out.print("Enter initial balance: ");
+        double balance = validateNumericInput();
+
+        User user = new User(name, accountNumber, balance);
+        users.put(accountNumber, user);
+        System.out.println("User registration successful!");
+    }
+
+    public void loginUser() {
+        System.out.println("Login");
+        System.out.print("Enter account number: ");
+        String accountNumber = scanner.nextLine();
+        System.out.print("Enter password: ");
+        String password = scanner.nextLine();
+
+        User user = users.get(accountNumber);
+        if (user != null) {
+            System.out.println("Welcome, " + user.getName() + "!");
+            // Perform banking operations for the logged-in user
+            performBankingOperations(user);
+        } else {
+            System.out.println("Invalid account number or password");
+        }
+    }
+
+    public void performBankingOperations(User user) {
+        boolean loggedIn = true;
+        while (loggedIn) {
+            System.out.println("1. Deposit");
+            System.out.println("2. Withdraw");
+            System.out.println("3. Fund Transfer");
+            System.out.println("4. Account Statements");
+            System.out.println("5. Logout");
+            System.out.print("Enter option: ");
+            int option = scanner.nextInt();
+            scanner.nextLine(); // Consume newline character
+
+            switch (option) {
+                case 1:
+                    System.out.print("Enter deposit amount: ");
+                    double depositAmount = validateNumericInput();
+                    user.deposit(depositAmount);
+                    break;
+                case 2:
+                    System.out.print("Enter withdrawal amount: ");
+                    double withdrawalAmount = validateNumericInput();
+                    user.withdraw(withdrawalAmount);
+                    break;
+                case 3:
+                    System.out.print("Enter recipient's account number: ");
+                    String recipientAccountNumber = scanner.nextLine();
+                    System.out.print("Enter transfer amount: ");
+                    double transferAmount = validateNumericInput();
+                    User recipient = users.get(recipientAccountNumber);
+                    if (recipient != null) {
+                        user.transfer(recipient, transferAmount);
+                    } else {
+                        System.out.println("Recipient account not found");
+                    }
+                    break;
+                case 4:
+                    System.out.println("Account Statements");
+                    List<String> transactionHistory = user.getTransactionHistory();
+                    for (String transaction : transactionHistory) {
+                        System.out.println(transaction);
+                    }
+                    break;
+                case 5:
+                    loggedIn = false;
+                    System.out.println("Logged out successfully");
+                    break;
+                default:
+                    System.out.println("Invalid option");
+                    break;
+            }
+        }
+    }
+
+    private double validateNumericInput() {
+        double input = 0.0;
+        boolean valid = false;
+        while (!valid) {
+            try {
+                input = scanner.nextDouble();
+                valid = true;
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a numeric value.");
+                scanner.nextLine(); // Consume invalid input
+            }
+        }
+        scanner.nextLine(); // Consume newline character
+        return input;
+    }
+}
+
+// Main class
+public class BankingInformationSystem {
+    public static void main(String[] args) {
+        BankingSystem bankingSystem = new BankingSystem();
+        bankingSystem.registerUser();
+        bankingSystem.loginUser();
+    }
+}
